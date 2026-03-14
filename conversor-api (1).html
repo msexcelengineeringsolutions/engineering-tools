@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Conversor API — MS Excel Engineering Solutions</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f6f2;
+    --surface: #ffffff;
+    --border: #d8d5cc;
+    --border-strong: #b0aca0;
+    --accent: #1a3a2a;
+    --accent-light: #e8ede9;
+    --gold: #8a6f2e;
+    --text: #1c1c1a;
+    --muted: #5c5a54;
+    --dim: #9a9890;
+    --font-head: 'Source Serif 4', Georgia, serif;
+    --font-mono: 'Source Code Pro', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-head);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 3rem 1.25rem 5rem;
+  }
+
+  .page { width: 100%; max-width: 700px; }
+
+  header {
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .logo-line {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+
+  h1 {
+    font-size: clamp(18px, 3.5vw, 25px);
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.25;
+    margin-bottom: 0.5rem;
+  }
+
+  .desc {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .std-badge {
+    display: inline-block;
+    margin-top: 0.75rem;
+    padding: 3px 9px;
+    border: 1px solid var(--border-strong);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    background: var(--surface);
+  }
+
+  .section-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 1rem;
+  }
+
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 460px) { .inputs-grid { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+
+  label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  input[type=number] {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 17px;
+    padding: 10px 12px;
+    width: 100%;
+    transition: border-color 0.15s;
+    -moz-appearance: textfield;
+  }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type=number]::placeholder { color: var(--dim); font-size: 13px; }
+  input[type=number]:focus { outline: none; border-color: var(--accent); }
+  input[type=number].active-input { border-color: var(--gold); border-width: 2px; }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 1.25rem;
+  }
+
+  @media (max-width: 540px) { .results-grid { grid-template-columns: 1fr 1fr; } }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 12px 10px;
+  }
+
+  .result-card.highlight {
+    border-color: var(--gold);
+    border-width: 2px;
+    background: #fdf8ef;
+  }
+
+  .rc-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .rc-val {
+    font-family: var(--font-mono);
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 3px;
+    word-break: break-all;
+  }
+
+  .rc-unit {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--dim);
+  }
+
+  .interp {
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--accent-light);
+    margin-bottom: 2rem;
+    display: none;
+    line-height: 1.55;
+  }
+  .interp.visible { display: block; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.75rem 0; }
+
+  .info-section h3 {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .formulas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  @media (max-width: 460px) { .formulas { grid-template-columns: 1fr; } }
+
+  .formula-box {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 10px 12px;
+    background: var(--surface);
+  }
+  .f-label { font-family: var(--font-mono); font-size: 9px; color: var(--dim); margin-bottom: 4px; letter-spacing: 0.06em; }
+  .f-eq { font-family: var(--font-mono); font-size: 12px; color: var(--gold); }
+
+  .class-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 1rem; }
+  .class-table th {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+    border-bottom: 1px solid var(--border);
+    padding: 6px 10px;
+    text-align: left;
+    background: var(--bg);
+  }
+  .class-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    font-family: var(--font-mono);
+  }
+  .class-table td:first-child { font-family: var(--font-head); color: var(--text); }
+  .class-table tr:last-child td { border-bottom: none; }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--dim);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="logo-line">MS Excel Engineering Solutions</div>
+    <h1>Conversión entre Grados API y Unidades de Densidad</h1>
+    <p class="desc">Ingrese un valor en cualquier campo para convertir automáticamente entre Grados API, Gravedad Específica, kg/L, kg/m³ y lb/gal.</p>
+    <span class="std-badge">Referencia: 60 °F / 15.6 °C — ASTM D1298</span>
+  </header>
+
+  <div class="section-title">Ingrese cualquier valor para convertir</div>
+
+  <div class="inputs-grid">
+    <div class="field">
+      <label>Grados API (°API)</label>
+      <input type="number" id="api" placeholder="ej. 35.00" step="0.01" />
+    </div>
+    <div class="field">
+      <label>Gravedad Específica</label>
+      <input type="number" id="sg" placeholder="ej. 0.8498" step="0.0001" />
+    </div>
+    <div class="field">
+      <label>kg / Litro</label>
+      <input type="number" id="kgl" placeholder="ej. 0.8490" step="0.0001" />
+    </div>
+    <div class="field">
+      <label>kg / m³</label>
+      <input type="number" id="kgm3" placeholder="ej. 849.0" step="0.1" />
+    </div>
+    <div class="field">
+      <label>Libras / Galón US (lb/gal)</label>
+      <input type="number" id="lpg" placeholder="ej. 7.090" step="0.001" />
+    </div>
+  </div>
+
+  <div id="results-section" style="display:none;">
+    <div class="section-title">Resultados</div>
+    <div class="results-grid">
+      <div class="result-card" id="c-api">
+        <div class="rc-label">°API</div>
+        <div class="rc-val" id="r-api">—</div>
+        <div class="rc-unit">grados API</div>
+      </div>
+      <div class="result-card" id="c-sg">
+        <div class="rc-label">Grav. Esp.</div>
+        <div class="rc-val" id="r-sg">—</div>
+        <div class="rc-unit">adimensional</div>
+      </div>
+      <div class="result-card" id="c-kgl">
+        <div class="rc-label">kg/L</div>
+        <div class="rc-val" id="r-kgl">—</div>
+        <div class="rc-unit">kg por litro</div>
+      </div>
+      <div class="result-card" id="c-kgm3">
+        <div class="rc-label">kg/m³</div>
+        <div class="rc-val" id="r-kgm3">—</div>
+        <div class="rc-unit">kg por metro³</div>
+      </div>
+      <div class="result-card" id="c-lpg">
+        <div class="rc-label">lb/gal</div>
+        <div class="rc-val" id="r-lpg">—</div>
+        <div class="rc-unit">libras/galón US</div>
+      </div>
+    </div>
+    <div class="interp" id="interp"></div>
+  </div>
+
+  <hr class="divider" />
+
+  <div class="info-section">
+    <h3>Fórmulas utilizadas</h3>
+    <div class="formulas">
+      <div class="formula-box">
+        <div class="f-label">API → Grav. Específica</div>
+        <div class="f-eq">SG = 141.5 / (API + 131.5)</div>
+      </div>
+      <div class="formula-box">
+        <div class="f-label">Grav. Específica → API</div>
+        <div class="f-eq">API = (141.5 / SG) − 131.5</div>
+      </div>
+      <div class="formula-box">
+        <div class="f-label">Grav. Esp. → kg/L</div>
+        <div class="f-eq">kg/L = SG × 0.99904</div>
+      </div>
+      <div class="formula-box">
+        <div class="f-label">kg/L → kg/m³</div>
+        <div class="f-eq">kg/m³ = kg/L × 1000</div>
+      </div>
+      <div class="formula-box">
+        <div class="f-label">Grav. Esp. → lb/gal</div>
+        <div class="f-eq">lb/gal = SG × 8.3278</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <div class="info-section">
+    <h3>Clasificación por grado API</h3>
+    <table class="class-table">
+      <thead>
+        <tr>
+          <th>Tipo de crudo</th>
+          <th>Rango °API</th>
+          <th>Grav. Específica</th>
+          <th>Densidad kg/m³</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Extra liviano</td><td>&gt; 45°</td><td>&lt; 0.8017</td><td>&lt; 801</td></tr>
+        <tr><td>Liviano</td><td>31.1° – 45°</td><td>0.8017 – 0.8699</td><td>801 – 869</td></tr>
+        <tr><td>Mediano</td><td>22.3° – 31.1°</td><td>0.8699 – 0.9220</td><td>869 – 921</td></tr>
+        <tr><td>Pesado</td><td>10° – 22.3°</td><td>0.9220 – 1.0000</td><td>921 – 999</td></tr>
+        <tr><td>Extra pesado / Bitumen</td><td>&lt; 10°</td><td>&gt; 1.0000</td><td>&gt; 999</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <span>© 2025 MS Excel Engineering Solutions</span>
+    <a href="https://msexcelengineeringsolutions.wordpress.com" target="_blank">msexcelengineeringsolutions.wordpress.com</a>
+  </footer>
+
+</div>
+<script>
+  const SG_WATER = 0.99904;
+  const LPG_FACTOR = SG_WATER * 8.3278;
+  const fields = ['api','sg','kgl','kgm3','lpg'];
+
+  function apiToSg(api)  { return 141.5 / (api + 131.5); }
+  function sgToApi(sg)   { return (141.5 / sg) - 131.5; }
+  function sgToKgl(sg)   { return sg * SG_WATER; }
+  function kglToSg(kgl)  { return kgl / SG_WATER; }
+  function sgToLpg(sg)   { return sg * LPG_FACTOR; }
+  function lpgToSg(lpg)  { return lpg / LPG_FACTOR; }
+
+  function compute(from, val) {
+    let sg;
+    if      (from === 'api')  sg = apiToSg(val);
+    else if (from === 'sg')   sg = val;
+    else if (from === 'kgl')  sg = kglToSg(val);
+    else if (from === 'kgm3') sg = kglToSg(val / 1000);
+    else                      sg = lpgToSg(val);
+    const kgl = sgToKgl(sg);
+    return { api: sgToApi(sg), sg, kgl, kgm3: kgl * 1000, lpg: sgToLpg(sg) };
+  }
+
+  function fmt(k, v) {
+    if (k === 'api')  return v.toFixed(2);
+    if (k === 'kgm3') return v.toFixed(1);
+    if (k === 'lpg')  return v.toFixed(3);
+    return v.toFixed(4);
+  }
+
+  function classify(api) {
+    if (api > 45)    return 'Extra liviano (API > 45°)';
+    if (api > 31.1)  return 'Petróleo liviano (31.1° – 45° API) — flota sobre el agua.';
+    if (api >= 22.3) return 'Petróleo mediano (22.3° – 31.1° API).';
+    if (api >= 10)   return 'Petróleo pesado (10° – 22.3° API).';
+    return 'Extra pesado / Bitumen (API < 10°) — más denso que el agua.';
+  }
+
+  function update(from) {
+    const inp = document.getElementById(from);
+    const val = parseFloat(inp.value);
+    const sec = document.getElementById('results-section');
+    if (isNaN(val) || inp.value === '') {
+      sec.style.display = 'none';
+      fields.forEach(f => document.getElementById(f).classList.remove('active-input'));
+      return;
+    }
+    const r = compute(from, val);
+    fields.forEach(k => {
+      document.getElementById('r-' + k).textContent = fmt(k, r[k]);
+      document.getElementById('c-' + k).className = 'result-card' + (k === from ? ' highlight' : '');
+    });
+    const interp = document.getElementById('interp');
+    interp.textContent = classify(r.api);
+    interp.className = 'interp visible';
+    sec.style.display = 'block';
+    fields.forEach(f => document.getElementById(f).classList.toggle('active-input', f === from));
+  }
+
+  fields.forEach(id => {
+    document.getElementById(id).addEventListener('input', () => update(id));
+  });
+</script>
+</body>
+</html>
